@@ -19,18 +19,29 @@ var summaries = new[]
     "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
 };
 
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/weatherforecast", (int? limit) =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    if (limit.HasValue)
+    {
+        if (limit.Value < 1 || limit.Value > 50)
+        {
+            return Results.BadRequest("Параметр limit должен быть от 1 до 50");
+        }
+    }
+
+    int count = limit ?? 5;
+
+    var forecast = Enumerable.Range(1, count).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
             Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
+            Summaries[Random.Shared.Next(Summaries.Length)]
         ))
         .ToArray();
-    return forecast;
-})
+
+    return Results.Ok(forecast);
+});
 .WithName("GetWeatherForecast");
 
 app.Run();
